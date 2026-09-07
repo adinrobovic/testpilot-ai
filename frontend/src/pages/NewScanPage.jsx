@@ -6,11 +6,21 @@ export default function NewScanPage() {
     const navigate = useNavigate();
 
     // Create a function for the button
-    const handleStartScan = () => {
+    const handleStartScan = async () => {
         if (!url) {
             return;
         }
 
+        const response = await fetch("http://127.0.0.1:8000/api/scans", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ url })
+        });
+
+        const data = await response.json();
+        
         navigate("/scanning", {
             state: { url }
         });
