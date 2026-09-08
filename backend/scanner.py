@@ -1,6 +1,7 @@
 from playwright.async_api import async_playwright
 import os
 import uuid
+from axe_playwright_python.async_playwright import Axe
 
 async def scan_page(url):
     async with async_playwright() as playwright:
@@ -39,6 +40,25 @@ async def scan_page(url):
 
         response =await page.goto(url)
 
+        axe = Axe()
+        axe_results = await axe.run(page)
+
+        accessibility_violations = axe_results.response["violations"]
+
+        accessibility_findings = []
+
+        for violation in accessibility_violations:
+            accessibility_findings.append({
+                "id":violation["id"],
+                "severity":violation["impact"],
+                "title":violation["help"],
+                "businessImpact": "",
+                "affectedPage":page.url,
+                "technicalDetails":violation["description"],
+                "helpUrl":violation["helpUrl"],
+                "nodes":violation["nodes"]
+            })
+
         final_url = page.url
 
         status = response.status
@@ -62,7 +82,10 @@ async def scan_page(url):
             "screenshot": screenshot_path,
             "console_errors": console_errors,
             "failed_requests": failed_requests,
-            "bad_responses": bad_responses
+            "bad_responses": bad_responses,
+            "accessibility_violation_count": axe_results.violations_count,
+            "accessibility_violations": accessibility_violations,
+            "accessibility_findgins": accessibility_findings
         }
 
     
